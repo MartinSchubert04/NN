@@ -1,11 +1,11 @@
 #pragma once
 
-#include <cstdint>
-#include <stdint.h>
+#include "pch.h"
 #include <iostream>
-#include <stdfloat>
 #include <vector>
 
+#define MAX(a, b) a > b ? a : b
+#define MIN(a, b) a < b ? a : b
 namespace NN {
 
 class Matrix {
@@ -16,16 +16,20 @@ public:
     TransposeView(const Matrix *m) : mat(m) {}
   };
 
-  Matrix() = default;
-  Matrix(uint32_t rows, uint32_t cols) : _rows(rows), _cols(cols) { _data.resize(rows * cols, 0.0f); }
+  u32 rows;
+  u32 cols;
+  std::vector<f32> data;
 
-  void fill(float x);
-  void scale(float scale);
+  Matrix() = default;
+  Matrix(u32 rows, u32 cols) : rows(rows), cols(cols) { data.resize(rows * cols, 0.0f); }
+
+  void fill(f32 x);
+  void scale(f32 scale);
   void clear();
   Matrix copy();
-  float sum();
+  f32 sum();
 
-  std::vector<float> getData() const { return _data; };
+  std::vector<f32> getData() const { return data; };
 
   Matrix transpose();
   TransposeView T();
@@ -33,7 +37,7 @@ public:
   Matrix operator+(const Matrix &mat);
   Matrix operator-(const Matrix &mat);
 
-  Matrix operator*(float scalar);  // same as scale()
+  Matrix operator*(f32 scalar);  // same as scale()
   Matrix operator*(const Matrix &mat);  // a * b
   Matrix operator*(const TransposeView &mat);  // a * b.T()
   friend Matrix operator*(const TransposeView &view, const Matrix &mat);  // a.T() * b
@@ -41,14 +45,8 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const Matrix &mat);
 
-private:
-  uint32_t _rows;
-  uint32_t _cols;
-  std::vector<float> _data;
+  Matrix relu();  // TODO move to nn class
+  Matrix softmax();  // TODO move to nn class
 };
-
-void ReLU();
-void softmax();
-void crossentropy();
 
 }  // namespace NN

@@ -1,0 +1,23 @@
+Checks: '-*,readability-identifier-naming'
+
+CheckOptions:
+
+  # Functions → camelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: cameBack
+
+  # Local variables → camelCase
+  - key: readability-identifier-naming.VariableCase
+    value: cameBack
+
+  # PRIVATE members → _camelCase
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: _
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: camelBack
+
+  # PROTECTED members → camelCase (optional)
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: _
+  - key: readability-identifier-naming.ProtectedMemberCase
+    value: cameCase
