@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+
+    {
+      "name": "Debug OpenGL (MinGW)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/openGL.exe",
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+      "stopAtEntry": true,
+      "externalConsole": false,
+
+      "setupCommands": [
+        {
+          "description": "Skip STL",
+          "text": "skip -gfi std::*",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Skip libstdc++",
+          "text": "skip -rf C:/msys64/mingw64/include/c++",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
