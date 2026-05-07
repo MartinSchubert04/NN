@@ -17,7 +17,7 @@ public:
   };
 
   Matrix() = default;
-  Matrix(uint32_t rows, uint32_t cols) : _rows(rows), _cols(cols) {}
+  Matrix(uint32_t rows, uint32_t cols) : _rows(rows), _cols(cols) { _data.resize(rows * cols, 0.0f); }
 
   void fill(float x);
   void scale(float scale);
@@ -25,16 +25,21 @@ public:
   Matrix copy();
   float sum();
 
+  std::vector<float> getData() const { return _data; };
+
   Matrix transpose();
   TransposeView T();
 
   Matrix operator+(const Matrix &mat);
   Matrix operator-(const Matrix &mat);
 
+  Matrix operator*(float scalar);  // same as scale()
   Matrix operator*(const Matrix &mat);  // a * b
   Matrix operator*(const TransposeView &mat);  // a * b.T()
   friend Matrix operator*(const TransposeView &view, const Matrix &mat);  // a.T() * b
   friend Matrix operator*(const TransposeView &va, const TransposeView &vb);  // a.T() * b.T()
+
+  friend std::ostream &operator<<(std::ostream &os, const Matrix &mat);
 
 private:
   uint32_t _rows;
