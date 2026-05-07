@@ -196,34 +196,4 @@ std::ostream &operator<<(std::ostream &os, const Matrix &mat) {
 // ──── MATRIX END
 // ──────────────────────────────────────────
 
-Matrix Matrix::relu() {
-  Matrix result(this->rows, this->cols);
-
-  size_t size = cols * rows;
-
-  for (size_t i{0}; i < size; i++) {
-    result.data[i] = MAX(this->data[i], 0);
-  }
-
-  return result;
-}
-
-Matrix Matrix::softmax() {
-  // a_i = e^a_i/ sum(e^a_i)
-
-  Matrix result(this->rows, this->cols);
-
-  size_t size = cols * rows;
-
-  f32 sum = 0.0f;
-  for (size_t i{0}; i < size; i++) {
-    result.data[i] = expf(this->data[i]);
-    sum += result.data[i];
-  }
-
-  result = result * (1.0f / sum);
-
-  return result;
-}
-
 }  // namespace NN

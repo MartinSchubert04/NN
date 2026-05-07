@@ -1,6 +1,6 @@
 CXX = clang++
 TARGET = main
-SRCS = $(wildcard src/*.cpp)
+SRCS = $(wildcard NN/src/*.cpp)
 
 $(TARGET): $(SRCS)
 	$(CXX) $(SRCS) -o $(TARGET)

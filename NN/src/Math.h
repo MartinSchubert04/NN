@@ -44,9 +44,6 @@ public:
   friend Matrix operator*(const TransposeView &va, const TransposeView &vb);  // a.T() * b.T()
 
   friend std::ostream &operator<<(std::ostream &os, const Matrix &mat);
-
-  Matrix relu();  // TODO move to nn class
-  Matrix softmax();  // TODO move to nn class
 };
 
 }  // namespace NN

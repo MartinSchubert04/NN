@@ -11,7 +11,11 @@ public:
 
   NueralNetwork() = default;
 
+  Matrix loadFile(std::string filepath);
+
   Matrix crossEntropy(Matrix p, Matrix q);
+  Matrix relu(Matrix mat);  // TODO move to nn class
+  Matrix softmax(Matrix mat);  // TODO move to nn class
 };
 
 }  // namespace NN
