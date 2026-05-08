@@ -12,6 +12,7 @@
       "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
       "stopAtEntry": true,
       "externalConsole": false,
+      
 
       "setupCommands": [
         {
@@ -24,6 +25,7 @@
           "text": "skip -rf C:/msys64/mingw64/include/c++",
           "ignoreFailures": true
         }
+        
       ]
     }
   ]

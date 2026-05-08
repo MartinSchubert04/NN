@@ -3,15 +3,15 @@
 
 namespace NN {
 
-class NueralNetwork {
+class NeuralNetwork {
 
 public:
   std::vector<f32> weights;
   std::vector<f32> bias;
 
-  NueralNetwork() = default;
+  NeuralNetwork() = default;
 
-  Matrix loadFile(std::string filepath);
+  Matrix loadFile(u32 rows, u32 cols, std::string filepath);
 
   Matrix crossEntropy(Matrix p, Matrix q);
   Matrix relu(Matrix mat);  // TODO move to nn class

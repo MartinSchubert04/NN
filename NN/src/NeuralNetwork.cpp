@@ -1,19 +1,38 @@
 #include "NeuralNetwork.h"
+#include "Math.h"
 #include <cstdio>
-
+#include <fstream>
 namespace NN {
 
-Matrix loadFile(u32 rows, u32 cols, std::string filepath) {
+Matrix NeuralNetwork::loadFile(u32 rows, u32 cols, std::string filepath) {
 
-  FILE *file = fopen(filepath.c_str(), "rb");
+  // FILE *file = fopen(filepath.c_str(), "rb");
+  // fseek(file, 0, SEEK_END);
+  // u64 size = ftell(file);
+  // size = MIN(size, sizeof(f32) * rows * cols);
+  // fread(&mat.data, sizeof(f32), size, file);
+  // fclose(file);
 
-  fseek(file, 0, SEEK_END);
-  u64 size = ftell(file);
+  Matrix mat(rows, cols);
+  std::ifstream file(filepath, std::ios::binary | std::ios::ate);
+
+  if (!file.is_open()) {
+    throw std::runtime_error("No se pudo abrir: " + filepath);
+  }
+
+  u64 fileSize = static_cast<u64>(file.tellg());
+  file.seekg(0, std::ios::beg);
+
+  u64 size = MIN(fileSize, sizeof(f32) * rows * cols);
+
+  file.read(reinterpret_cast<char *>(mat.data.data()), size);
+
+  file.close();
 
   return mat;
 }
 
-Matrix NueralNetwork::relu(Matrix mat) {
+Matrix NeuralNetwork::relu(Matrix mat) {
   Matrix result(mat.rows, mat.cols);
 
   size_t size = mat.cols * mat.rows;
@@ -25,7 +44,7 @@ Matrix NueralNetwork::relu(Matrix mat) {
   return result;
 }
 
-Matrix NueralNetwork::softmax(Matrix mat) {
+Matrix NeuralNetwork::softmax(Matrix mat) {
   // a_i = e^a_i/ sum(e^a_i)
 
   Matrix result(mat.rows, mat.cols);
@@ -43,7 +62,7 @@ Matrix NueralNetwork::softmax(Matrix mat) {
   return result;
 }
 
-Matrix NueralNetwork::crossEntropy(Matrix p, Matrix q) {
+Matrix NeuralNetwork::crossEntropy(Matrix p, Matrix q) {
   if (p.rows != q.rows || p.cols != q.cols) {
     throw std::invalid_argument("Dimesions do not align for crossentropy function");
   }
