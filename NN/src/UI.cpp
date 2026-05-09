@@ -2,7 +2,7 @@
 #include "../include/raylib.h"
 #include "pch.h"
 
-void UI::loadImage(std::vector<float> &data, u8 label) {
+void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
 
   std::vector<unsigned char> pixels(28 * 28 * 4);
 
@@ -23,31 +23,44 @@ void UI::loadImage(std::vector<float> &data, u8 label) {
 
   Ref<Texture2D> texture = createRef<Texture2D>(LoadTextureFromImage(img));
 
-  images.push_back({texture, data, label});
+  images[index] = {texture, data, label};
+  _loadedIndexes.insert(index);
 }
 
 void UI::draw() {
+
+  if (images.size() == 0)
+    return;
 
   f32 imgPosY = 100;
   f32 imgPosX = 100;
   u32 fontSize = 20;
   f32 scale = 10.0f;
 
-  for (auto &img : images) {
+  ImageData img = images[_currentImg];
 
-    const char *text = TextFormat("Expected: %d", img.label);
-    u16 textSize = MeasureText(text, fontSize);
-    u32 centeredX = imgPosX + (28 * scale / 2 - textSize / 2);
-    u32 centeredY = imgPosY - 10 - fontSize;
+  const char *text = TextFormat("Expected: %d", img.label);
+  u16 textSize = MeasureText(text, fontSize);
+  u32 centeredX = imgPosX + (28 * scale / 2 - textSize / 2);
+  u32 centeredY = imgPosY - 10 - fontSize;
 
-    DrawText(text, centeredX, centeredY, fontSize, RAYWHITE);
-    DrawTextureEx(*img.texture, {imgPosX, imgPosY}, 0.0f, scale, WHITE);
-  }
+  DrawText(text, centeredX, centeredY, fontSize, RAYWHITE);
+  DrawTextureEx(*img.texture, {imgPosX, imgPosY}, 0.0f, scale, WHITE);
+}
+
+void UI::setCurrentImg(u32 index) {
+  _currentImg = index;
+}
+
+void UI::moveImg(int val) {
+  int next = (int)_currentImg + val;
+  if (next < 0)
+    return;
+  _currentImg = (u32)next;
 }
 
 UI::~UI() {
-
-  for (auto &img : images) {
+  for (auto &[index, img] : images) {
     UnloadTexture(*img.texture);
   }
 }

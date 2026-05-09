@@ -32,7 +32,9 @@ public:
 
   void run();
   void drawDigitsTerminal(std::vector<f32> data);
+  void loadImage(u32 index);
   u8 getLabel(std::vector<f32> &data, u64 index);
+  void onKeyPressed();
 
 private:
   struct ApplicationData {

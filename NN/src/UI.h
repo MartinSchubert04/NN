@@ -2,7 +2,8 @@
 
 #include "pch.h"
 #include "../include/raylib.h"
-#include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 class UI {
 
@@ -15,8 +16,18 @@ class UI {
 public:
   ~UI();
 
-  std::vector<ImageData> images;
+  std::unordered_map<u32, ImageData> images;
 
-  void loadImage(std::vector<float> &data, u8 label);
+  void loadTexture(std::vector<float> &data, u8 label, u32 index);
   void draw();
+
+  void setCurrentImg(u32 index);
+  u32 getCurrentImg() { return _currentImg; };
+  void moveImg(int val);
+
+  b32 isImgLoaded(u32 index) { return _loadedIndexes.count(index) > 0; };
+
+private:
+  std::unordered_set<u32> _loadedIndexes;
+  u32 _currentImg = 0;
 };

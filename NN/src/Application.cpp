@@ -34,11 +34,10 @@ Application::Application(const ApplicationSpec &spec) {
   }
 
   // drawDigitsTerminal(v);
-  u32 index = 101;
-  std::vector<float> imageRawData(trainImages.data.begin() + index * 784, trainImages.data.begin() + index * 784 + 784);
 
-  u8 label = getLabel(trainLabels.data, index);
-  ui.loadImage(imageRawData, label);
+  // for (size_t i{0}; i < 100; i++) {
+  //   loadImage(i);
+  // }
 }
 
 void Application::run() {
@@ -51,6 +50,8 @@ void Application::run() {
     ClearBackground(DARKPURPLE);
 
     ui.draw();
+
+    onKeyPressed();
 
     EndDrawing();
   }
@@ -75,4 +76,26 @@ u8 Application::getLabel(std::vector<f32> &data, u64 index) {
   }
 
   return 0.0f;
+}
+
+void Application::loadImage(u32 index) {
+  if (ui.isImgLoaded(index))
+    return;
+
+  std::vector<float> imageRawData(trainImages.data.begin() + index * 784, trainImages.data.begin() + index * 784 + 784);
+
+  u8 label = getLabel(trainLabels.data, index);
+  ui.loadTexture(imageRawData, label, index);
+}
+
+void Application::onKeyPressed() {
+
+  if (IsKeyPressed(KEY_LEFT)) {
+    ui.moveImg(-1);
+    loadImage(ui.getCurrentImg());
+  }
+  if (IsKeyPressed(KEY_RIGHT)) {
+    ui.moveImg(1);
+    loadImage(ui.getCurrentImg());
+  }
 }
