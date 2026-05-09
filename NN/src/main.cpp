@@ -4,10 +4,11 @@
 #include "pch.h"
 
 int main() {
+  NN::Application *app = new NN::Application({"NN", 1000, 1000, 60});
 
-  Application app({"NN", 1000, 1000, 60});
+  app->run();
 
-  app.run();
+  delete app;
 
   return 0;
 }

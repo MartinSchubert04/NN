@@ -6,6 +6,8 @@
 #include "NeuralNetwork.h"
 #include "Math.h"
 
+namespace NN {
+
 class Application {
 
 public:
@@ -22,11 +24,7 @@ public:
 public:
   UI ui;
 
-  NN::Matrix trainImages;
-  NN::Matrix testImages;
-
-  NN::Matrix trainLabels;
-  NN::Matrix testLabels;
+  NN::NeuralNetwork nn;
 
   Application(const ApplicationSpec &spec);
 
@@ -46,3 +44,5 @@ private:
 
   ApplicationData _data;
 };
+
+}  // namespace NN

@@ -1,5 +1,7 @@
 #include "Application.h"
 
+namespace NN {
+
 Application::Application(const ApplicationSpec &spec) {
   _data.title = spec._title;
   _data.width = spec._windowWidth;
@@ -10,34 +12,13 @@ Application::Application(const ApplicationSpec &spec) {
 
   NN::NeuralNetwork nn;
 
-  trainImages = nn.loadFile(60000, 784, DATA_PATH "train_images.mat");
-  testImages = nn.loadFile(10000, 784, DATA_PATH "test_images.mat");
-
-  NN::Matrix trainLabelsFile = nn.loadFile(60000, 1, DATA_PATH "train_labels.mat");
-  NN::Matrix testLabelsFile = nn.loadFile(10000, 1, DATA_PATH "test_labels.mat");
-
-  trainLabels = NN::Matrix(60000, 10);
-  testLabels = NN::Matrix(10000, 10);
-
-  {
-    // one hot encoding
-
-    for (size_t i{0}; i < trainLabelsFile.data.size(); i++) {
-      u16 num = trainLabelsFile.data[i];
-      trainLabels.data[i * 10 + num] = 1.0f;
-    }
-
-    for (size_t i{0}; i < testLabelsFile.data.size(); i++) {
-      u16 num = testLabelsFile.data[i];
-      testLabels.data[i * 10 + num] = 1.0f;
-    }
-  }
-
   // drawDigitsTerminal(v);
 
   // for (size_t i{0}; i < 100; i++) {
   //   loadImage(i);
   // }
+
+  loadImage(0);
 }
 
 void Application::run() {
@@ -82,9 +63,10 @@ void Application::loadImage(u32 index) {
   if (ui.isImgLoaded(index))
     return;
 
-  std::vector<float> imageRawData(trainImages.data.begin() + index * 784, trainImages.data.begin() + index * 784 + 784);
+  std::vector<float> imageRawData(nn.getModelData().testImages.data.begin() + index * 784,
+                                  nn.getModelData().testImages.data.begin() + index * 784 + 784);
 
-  u8 label = getLabel(trainLabels.data, index);
+  u8 label = getLabel(nn.getModelData().testLabels.data, index);
   ui.loadTexture(imageRawData, label, index);
 }
 
@@ -99,3 +81,5 @@ void Application::onKeyPressed() {
     loadImage(ui.getCurrentImg());
   }
 }
+
+}  // namespace NN

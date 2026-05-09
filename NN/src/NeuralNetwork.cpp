@@ -2,17 +2,33 @@
 #include "Math.h"
 #include <cstdio>
 #include <fstream>
+#include <vector>
 namespace NN {
 
+NeuralNetwork::NeuralNetwork() {
+
+  _modelData.trainImages = loadFile(60000, 784, DATA_PATH "train_images.mat");
+  _modelData.testImages = loadFile(10000, 784, DATA_PATH "test_images.mat");
+
+  Matrix trainLabelsFile = loadFile(60000, 1, DATA_PATH "train_labels.mat");
+  Matrix testLabelsFile = loadFile(10000, 1, DATA_PATH "test_labels.mat");
+
+  _modelData.trainLabels = Matrix(60000, 10);
+  _modelData.testLabels = Matrix(10000, 10);
+
+  oneHotEncode(_modelData.trainLabels.data, trainLabelsFile.data);
+  oneHotEncode(_modelData.testLabels.data, testLabelsFile.data);
+}
+
+std::vector<f32> NeuralNetwork::oneHotEncode(std::vector<f32> &out, std::vector<f32> &data) {
+  for (size_t i{0}; i < data.size(); i++) {
+    u8 num = data[i];
+    out[i * 10 + num] = 1.0f;
+  }
+  return out;
+}
+
 Matrix NeuralNetwork::loadFile(u32 rows, u32 cols, std::string filepath) {
-
-  // FILE *file = fopen(filepath.c_str(), "rb");
-  // fseek(file, 0, SEEK_END);
-  // u64 size = ftell(file);
-  // size = MIN(size, sizeof(f32) * rows * cols);
-  // fread(&mat.data, sizeof(f32), size, file);
-  // fclose(file);
-
   Matrix mat(rows, cols);
   std::ifstream file(filepath, std::ios::binary | std::ios::ate);
 

@@ -29,7 +29,7 @@ void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
 
 void UI::draw() {
 
-  if (images.size() == 0)
+  if (_loadedIndexes.size() == 0)
     return;
 
   f32 imgPosY = 100;
