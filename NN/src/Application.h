@@ -2,6 +2,9 @@
 
 #include "pch.h"
 #include "../include/raylib.h"
+#include "UI.h"
+#include "NeuralNetwork.h"
+#include "Math.h"
 
 class Application {
 
@@ -17,10 +20,19 @@ public:
   };
 
 public:
+  UI ui;
+
+  NN::Matrix trainImages;
+  NN::Matrix testImages;
+
+  NN::Matrix trainLabels;
+  NN::Matrix testLabels;
+
   Application(const ApplicationSpec &spec);
 
   void run();
-  void drawDigits(std::vector<f32> data);
+  void drawDigitsTerminal(std::vector<f32> data);
+  u8 getLabel(std::vector<f32> &data, u64 index);
 
 private:
   struct ApplicationData {
