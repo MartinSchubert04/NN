@@ -41,7 +41,7 @@ public:
   u32 size();
   Matrix copy();
   f32 sum();
-  Matrix elemMult(Matrix mat);
+  Matrix elemMult(const Matrix &mat);
 
   std::vector<f32> getData() const { return data; };
 
@@ -62,6 +62,6 @@ public:
 
 // helper funs
 
-Matrix sumXaxis(Matrix mat);
+Matrix sumXaxis(const Matrix &mat);
 
 }  // namespace NN

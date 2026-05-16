@@ -18,6 +18,19 @@ public:
     Matrix testLabels;
   };
 
+  struct ModelContext {
+    std::vector<u32> layers;
+    std::vector<Matrix> weights;
+    std::vector<Matrix> bias;
+    std::unordered_map<std::string, Matrix> forwardOut;
+    std::unordered_map<std::string, Matrix> backwardOut;
+
+    ModelContext(std::vector<u32> layers, std::vector<Matrix> weights, std::vector<Matrix> bias,
+                 std::unordered_map<std::string, Matrix> forwardOut,
+                 std::unordered_map<std::string, Matrix> backwardOut) :
+        layers(layers), weights(weights), bias(bias), forwardOut(forwardOut), backwardOut(backwardOut) {}
+  };
+
 public:
   ModelData _modelData;
 
@@ -26,8 +39,8 @@ public:
   std::vector<u32> layers;
   f32 loss;
 
-  std::unordered_map<std::string, Matrix> weights;
-  std::unordered_map<std::string, Matrix> bias;
+  std::vector<Matrix> weights;
+  std::vector<Matrix> bias;
   std::unordered_map<std::string, Matrix> forwardOut;
   std::unordered_map<std::string, Matrix> backwardOut;
 
@@ -36,13 +49,15 @@ public:
 
   Matrix loadFile(u32 rows, u32 cols, std::string filepath);
   std::vector<f32> oneHotEncode(std::vector<f32> &out, std::vector<f32> &data);
-  Matrix crossEntropy(Matrix p, Matrix q);
-  Matrix relu(Matrix mat);
-  Matrix d_relu(Matrix mat);
-  Matrix softmax(Matrix mat);
+  Matrix crossEntropy(const Matrix &p, const Matrix &q);
+  Matrix relu(const Matrix &mat);
+  Matrix d_relu(const Matrix &mat);
+  Matrix softmax(const Matrix &mat);
   void updateParameters();
 
   ModelData &getModelData() { return _modelData; }
+
+  ModelContext getModelContext() { return ModelContext(layers, weights, bias, forwardOut, backwardOut); }
 
   void forwardProp(Matrix input);
   void backwardProp(Matrix y);

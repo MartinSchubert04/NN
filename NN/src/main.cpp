@@ -4,7 +4,7 @@
 #include "pch.h"
 
 int main() {
-  NN::Application *app = new NN::Application({"NN", 1000, 1000, 60});
+  NN::Application *app = new NN::Application({"NN", 1500, 1000, 60});
 
   app->run();
 

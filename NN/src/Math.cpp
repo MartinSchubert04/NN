@@ -46,7 +46,7 @@ f32 Matrix::sum() {
   return sum;
 }
 
-Matrix Matrix::elemMult(Matrix mat) {
+Matrix Matrix::elemMult(const Matrix &mat) {
   if (this->cols != mat.cols || this->rows != mat.rows) {
     throw std::invalid_argument("Dimesions do not align for element multiplication");
   }
@@ -220,7 +220,7 @@ std::ostream &operator<<(std::ostream &os, const Matrix &mat) {
 // ──── MATRIX END
 // ──────────────────────────────────────────
 
-Matrix sumXaxis(Matrix mat) {
+Matrix sumXaxis(const Matrix &mat) {
   Matrix out(mat.rows, 1);
 
   for (size_t i{0}; i < mat.rows; i++) {

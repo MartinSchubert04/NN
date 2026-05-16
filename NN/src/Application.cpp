@@ -2,6 +2,7 @@
 #include "NeuralNetwork.h"
 #include <string>
 #include <vector>
+#include <chrono>
 
 namespace NN {
 
@@ -13,20 +14,22 @@ Application::Application(const ApplicationSpec &spec) {
 
   InitWindow(_data.width, _data.height, _data.title.c_str());
 
-  std::vector<u32> layers{784, 32, 10};
+  std::vector<u32> layers{784, 28, 32, 10};
 
   f32 step = 0.005;
   u32 epochs = 5000;
 
   nn = NN::NeuralNetwork(layers, step, epochs);
 
+  ui.init(nn.getModelContext(), {_data.width, _data.height});
+
+  auto start = std::chrono::high_resolution_clock::now();
+
   nn.train();
 
-  // drawDigitsTerminal(v);
-
-  // for (size_t i{0}; i < 100; i++) {
-  //   loadImage(i);
-  // }
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  ui.setTrainingDuration(duration.count() / 1000.f);
 
   loadImage(0);
 }
@@ -38,7 +41,7 @@ void Application::run() {
     SetWindowTitle(TextFormat("%s | FPS: %d", _data.title.c_str(), GetFPS()));
 
     BeginDrawing();
-    ClearBackground(DARKPURPLE);
+    ClearBackground({33, 60, 81});
 
     u32 index = ui.getCurrentImg();
 

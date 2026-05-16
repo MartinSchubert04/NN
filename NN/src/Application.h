@@ -13,11 +13,12 @@ class Application {
 public:
   struct ApplicationSpec {
     std::string _title;
-    u32 _windowWidth;
-    u32 _windowHeight;
-    u32 _fps;
+    f32 _windowWidth;
+    f32 _windowHeight;
+    f32 _fps;
 
-    ApplicationSpec(const std::string &title = "Engine", u32 windowWidth = 800, u32 windowHeight = 600, u32 fps = 60) :
+    ApplicationSpec(const std::string &title = "Engine", f32 windowWidth = 800, f32 windowHeight = 600,
+                    f32 fps = 60.0f) :
         _title(title), _windowHeight(windowHeight), _windowWidth(windowWidth), _fps(fps) {};
   };
 
@@ -37,9 +38,9 @@ public:
 private:
   struct ApplicationData {
     std::string title;
-    u32 width;
-    u32 height;
-    u32 fps;
+    f32 width;
+    f32 height;
+    f32 fps;
   };
 
   ApplicationData _data;

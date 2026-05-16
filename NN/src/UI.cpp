@@ -1,6 +1,59 @@
 #include "UI.h"
-#include "../include/raylib.h"
-#include "pch.h"
+#include "NeuralNetwork.h"
+
+namespace NN {
+
+void UI::init(NeuralNetwork::ModelContext ctx, Vector2 windowSize) {
+  _windowSize = windowSize;
+
+  Vector2 startPos{_windowSize.x / 3, _windowSize.y / 2};
+  u32 offsetY = 30;
+  u32 offsetX = 150;
+
+  for (size_t i{1}; i < ctx.layers.size(); i++) {
+    u32 n = ctx.layers[i];
+    u32 totalHeight = (n - 1) * offsetY;
+
+    for (size_t j{0}; j < n; j++) {
+      float posX = startPos.x + offsetX * (i - 1);
+      float posY = startPos.y - totalHeight / 2.0f + offsetY * j;
+
+      neurons.push_back({posX, posY});
+    }
+  }
+
+  std::vector<u32> layerOffset(ctx.layers.size(), 0);
+  for (size_t i{2}; i < ctx.layers.size(); i++)
+    layerOffset[i] = layerOffset[i - 1] + ctx.layers[i - 1];
+
+  for (size_t i{1}; i < ctx.layers.size() - 1; i++) {
+    for (size_t j{0}; j < ctx.layers[i]; j++) {
+      for (size_t k{0}; k < ctx.layers[i + 1]; k++) {
+        Line l;
+        l.start = neurons[layerOffset[i] + j];
+        l.end = neurons[layerOffset[i + 1] + k];
+        connections.push_back(l);
+      }
+    }
+  }
+}
+
+UI::~UI() {
+  for (auto &[index, img] : images) {
+    UnloadTexture(*img.texture);
+  }
+}
+
+void UI::setCurrentImg(u32 index) {
+  _currentImg = index;
+}
+
+void UI::moveImg(int val) {
+  int next = (int)_currentImg + val;
+  if (next < 0)
+    return;
+  _currentImg = (u32)next;
+}
 
 void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
 
@@ -29,13 +82,15 @@ void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
 
 void UI::draw(u16 val) {
 
+  drawNet();
+
   if (_loadedIndexes.size() == 0)
     return;
 
-  f32 imgPosY = 100;
   f32 imgPosX = 100;
   u32 fontSize = 20;
   f32 scale = 10.0f;
+  f32 imgPosY = _windowSize.y / 2 - (28 * scale / 2);
 
   ImageData img = images[_currentImg];
 
@@ -46,23 +101,22 @@ void UI::draw(u16 val) {
   u32 centeredX = imgPosX + (28 * scale / 2 - textSize / 2);
   u32 centeredY = imgPosY - 10 - fontSize;
 
+  DrawText(TextFormat("Train time: %.2f", _trainingTime), centeredX, centeredY - 30, fontSize, RAYWHITE);
   DrawText(text, centeredX, centeredY, fontSize, RAYWHITE);
   DrawTextureEx(*img.texture, {imgPosX, imgPosY}, 0.0f, scale, WHITE);
 }
 
-void UI::setCurrentImg(u32 index) {
-  _currentImg = index;
-}
+void UI::drawNet() {
 
-void UI::moveImg(int val) {
-  int next = (int)_currentImg + val;
-  if (next < 0)
-    return;
-  _currentImg = (u32)next;
-}
+  u32 radius = 10;
 
-UI::~UI() {
-  for (auto &[index, img] : images) {
-    UnloadTexture(*img.texture);
+  for (auto &c : connections) {
+    DrawLine(c.start.x, c.start.y, c.end.x, c.end.y, RAYWHITE);
+  }
+
+  for (auto &n : neurons) {
+    DrawCircle(n.x, n.y, radius, RAYWHITE);
   }
 }
+
+}  // namespace NN

@@ -28,6 +28,9 @@ NeuralNetwork::NeuralNetwork(std::vector<u32> layers, f32 step, u32 epochs) :
   // init w & b
   std::uniform_real_distribution<f32> dist(-0.5f, 0.5f);
 
+  weights.resize(layers.size());
+  bias.resize(layers.size());
+
   for (size_t i{1}; i < layers.size(); i++) {
     Matrix w(layers[i], layers[i - 1]);
 
@@ -35,12 +38,12 @@ NeuralNetwork::NeuralNetwork(std::vector<u32> layers, f32 step, u32 epochs) :
       w.data[j] = dist(rng());
     }
 
-    weights["W" + toString(i)] = w;
+    weights[i] = w;
 
     Matrix b(layers[i], 1);
     b.fill(0);
 
-    bias["b" + toString(i)] = b;
+    bias[i] = b;
   }
 }
 
@@ -72,7 +75,7 @@ Matrix NeuralNetwork::loadFile(u32 rows, u32 cols, std::string filepath) {
   return mat;
 }
 
-Matrix NeuralNetwork::relu(Matrix mat) {
+Matrix NeuralNetwork::relu(const Matrix &mat) {
   Matrix result(mat.rows, mat.cols);
 
   size_t size = mat.cols * mat.rows;
@@ -84,7 +87,7 @@ Matrix NeuralNetwork::relu(Matrix mat) {
   return result;
 }
 
-Matrix NeuralNetwork::d_relu(Matrix mat) {
+Matrix NeuralNetwork::d_relu(const Matrix &mat) {
   Matrix result(mat.rows, mat.cols);
 
   size_t size = mat.cols * mat.rows;
@@ -96,7 +99,7 @@ Matrix NeuralNetwork::d_relu(Matrix mat) {
   return result;
 }
 
-Matrix NeuralNetwork::softmax(Matrix mat) {
+Matrix NeuralNetwork::softmax(const Matrix &mat) {
   // a_i = e^a_i/ sum(e^a_i)
 
   Matrix result(mat.rows, mat.cols);
@@ -115,7 +118,7 @@ Matrix NeuralNetwork::softmax(Matrix mat) {
   return result;
 }
 
-Matrix NeuralNetwork::crossEntropy(Matrix p, Matrix q) {
+Matrix NeuralNetwork::crossEntropy(const Matrix &p, const Matrix &q) {
   if (p.rows != q.rows || p.cols != q.cols) {
     throw std::invalid_argument("Dimesions do not align for crossentropy function");
   }
@@ -137,15 +140,13 @@ void NeuralNetwork::forwardProp(Matrix input) {
   forwardOut["A0"] = input;
 
   for (size_t i{1}; i < n; i++) {
-    forwardOut["Z" + toString(i)] =
-        weights["W" + toString(i)] * forwardOut["A" + toString(i - 1)] + bias["b" + toString(i)];
+    forwardOut["Z" + toString(i)] = weights[i] * forwardOut["A" + toString(i - 1)] + bias[i];
 
     forwardOut["A" + toString(i)] = relu(forwardOut["Z" + toString(i)]);
   }
 
   // last layers
-  forwardOut["Z" + toString(n)] =
-      weights["W" + toString(n)] * forwardOut["A" + toString(n - 1)] + bias["b" + toString(n)];
+  forwardOut["Z" + toString(n)] = weights[n] * forwardOut["A" + toString(n - 1)] + bias[n];
   forwardOut["A" + toString(n)] = softmax(forwardOut["Z" + toString(n)]);
 }
 
@@ -161,8 +162,8 @@ void NeuralNetwork::backwardProp(Matrix y) {
   backwardOut["db" + toString(n)] = sumXaxis(backwardOut["dZ" + toString(n)]);
 
   for (int i{n - 1}; i > 0; i--) {
-    backwardOut["dZ" + toString(i)] = (weights["W" + toString(i + 1)].T() * backwardOut["dZ" + toString(i + 1)])
-                                          .elemMult(d_relu(forwardOut["Z" + toString(i)]));
+    backwardOut["dZ" + toString(i)] =
+        (weights[i + 1].T() * backwardOut["dZ" + toString(i + 1)]).elemMult(d_relu(forwardOut["Z" + toString(i)]));
 
     backwardOut["dW" + toString(i)] = backwardOut["dZ" + toString(i)] * forwardOut["A" + toString(i - 1)].T();
 
@@ -173,8 +174,8 @@ void NeuralNetwork::backwardProp(Matrix y) {
 void NeuralNetwork::updateParameters() {
 
   for (size_t i{1}; i < layers.size(); i++) {
-    weights["W" + toString(i)] = weights["W" + toString(i)] - (backwardOut["dW" + toString(i)] * learningStep);
-    bias["b" + toString(i)] = bias["b" + toString(i)] - (backwardOut["db" + toString(i)] * learningStep);
+    weights[i] = weights[i] - (backwardOut["dW" + toString(i)] * learningStep);
+    bias[i] = bias[i] - (backwardOut["db" + toString(i)] * learningStep);
   }
 }
 
