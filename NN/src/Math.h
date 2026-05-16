@@ -6,6 +6,17 @@
 
 #define MAX(a, b) a > b ? a : b
 #define MIN(a, b) a < b ? a : b
+
+#define MAT_OP(expr) \
+  [&]() { \
+    try { \
+      return (expr); \
+    } catch (const std::exception &e) { \
+      std::cerr << e.what() << "\n  en " << __FILE__ << ":" << __LINE__ << "\n"; \
+      throw; \
+    } \
+  }()
+
 namespace NN {
 
 class Matrix {
@@ -22,12 +33,15 @@ public:
 
   Matrix() = default;
   Matrix(u32 rows, u32 cols) : rows(rows), cols(cols) { data.resize(rows * cols, 0.0f); }
+  Matrix(u32 rows, u32 cols, std::vector<f32> data) : rows(rows), cols(cols), data(data) {}
 
   void fill(f32 x);
   void scale(f32 scale);
   void clear();
+  u32 size();
   Matrix copy();
   f32 sum();
+  Matrix elemMult(Matrix mat);
 
   std::vector<f32> getData() const { return data; };
 
@@ -45,5 +59,9 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const Matrix &mat);
 };
+
+// helper funs
+
+Matrix sumXaxis(Matrix mat);
 
 }  // namespace NN

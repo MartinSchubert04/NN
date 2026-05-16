@@ -27,7 +27,7 @@ void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
   _loadedIndexes.insert(index);
 }
 
-void UI::draw() {
+void UI::draw(u16 val) {
 
   if (_loadedIndexes.size() == 0)
     return;
@@ -39,7 +39,9 @@ void UI::draw() {
 
   ImageData img = images[_currentImg];
 
-  const char *text = TextFormat("Expected: %d", img.label);
+  const char *status = val == img.label ? "SUCCES" : "FAIL";
+
+  const char *text = TextFormat("Expected: %d | Predicted: %d | %s", img.label, val, status);
   u16 textSize = MeasureText(text, fontSize);
   u32 centeredX = imgPosX + (28 * scale / 2 - textSize / 2);
   u32 centeredY = imgPosY - 10 - fontSize;

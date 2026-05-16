@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 using int8_t = int8_t;
@@ -37,3 +38,10 @@ template <typename T, typename... Args>
 constexpr Ref<T> createRef(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 }
+
+template <typename T>
+std::string toString(T val) {
+  return std::to_string(val);
+}
+
+#define LOG " [" + __FILE__ + ":" + std::to_string(__LINE__) + "]"

@@ -1,4 +1,7 @@
 #include "Application.h"
+#include "NeuralNetwork.h"
+#include <string>
+#include <vector>
 
 namespace NN {
 
@@ -10,7 +13,14 @@ Application::Application(const ApplicationSpec &spec) {
 
   InitWindow(_data.width, _data.height, _data.title.c_str());
 
-  NN::NeuralNetwork nn;
+  std::vector<u32> layers{784, 32, 10};
+
+  f32 step = 0.005;
+  u32 epochs = 5000;
+
+  nn = NN::NeuralNetwork(layers, step, epochs);
+
+  nn.train();
 
   // drawDigitsTerminal(v);
 
@@ -30,7 +40,14 @@ void Application::run() {
     BeginDrawing();
     ClearBackground(DARKPURPLE);
 
-    ui.draw();
+    u32 index = ui.getCurrentImg();
+
+    std::vector<f32> img(nn._modelData.testImages.data.begin() + index * 784,
+                         nn._modelData.testImages.data.begin() + index * 784 + 784);
+
+    u16 value = nn.predict(img);
+
+    ui.draw(value);
 
     onKeyPressed();
 

@@ -31,6 +31,10 @@ void Matrix::clear() {
   }
 }
 
+u32 Matrix::size() {
+  return this->data.size();
+}
+
 f32 Matrix::sum() {
   size_t size = cols * rows;
 
@@ -40,6 +44,20 @@ f32 Matrix::sum() {
   }
 
   return sum;
+}
+
+Matrix Matrix::elemMult(Matrix mat) {
+  if (this->cols != mat.cols || this->rows != mat.rows) {
+    throw std::invalid_argument("Dimesions do not align for element multiplication");
+  }
+
+  Matrix out(rows, cols);
+
+  for (size_t i{0}; i < rows; i++)
+    for (size_t j{0}; j < cols; j++)
+      out.data[i * cols + j] = this->data[i * cols + j] * mat.data[i * cols + j];
+
+  return out;
 }
 
 Matrix Matrix::transpose() {
@@ -69,7 +87,9 @@ Matrix Matrix::copy() {
 
 Matrix Matrix::operator*(const Matrix &mat) {
   if (this->cols != mat.rows) {
-    throw std::invalid_argument("Dimesions do not align for multiplication");
+    throw std::invalid_argument(std::string("Dimensions do not align for multiplication: ") + "(" +
+                                std::to_string(rows) + "x" + std::to_string(cols) + ") * " + "(" +
+                                std::to_string(mat.rows) + "x" + std::to_string(mat.cols) + ")");
   }
 
   Matrix result(this->rows, mat.cols);
@@ -153,7 +173,9 @@ Matrix Matrix::operator*(f32 scalar) {
 
 Matrix Matrix::operator+(const Matrix &mat) {
   if (mat.rows != this->rows || mat.cols != this->cols) {
-    throw std::invalid_argument("Dimesions do not align for addition");
+    throw std::invalid_argument(std::string("Dimensions do not align for additions: ") + "(" + std::to_string(rows) +
+                                "x" + std::to_string(cols) + ") * " + "(" + std::to_string(mat.rows) + "x" +
+                                std::to_string(mat.cols) + ")");
   }
 
   Matrix result(this->rows, this->cols);
@@ -169,7 +191,9 @@ Matrix Matrix::operator+(const Matrix &mat) {
 
 Matrix Matrix::operator-(const Matrix &mat) {
   if (mat.rows != this->rows || mat.cols != this->cols) {
-    throw std::invalid_argument("Dimesions do not align for substraction");
+    throw std::invalid_argument(std::string("Dimensions do not align for substraction: ") + "(" + std::to_string(rows) +
+                                "x" + std::to_string(cols) + ") * " + "(" + std::to_string(mat.rows) + "x" +
+                                std::to_string(mat.cols) + ")");
   }
 
   Matrix result(this->rows, this->cols);
@@ -195,5 +219,17 @@ std::ostream &operator<<(std::ostream &os, const Matrix &mat) {
 // ──────────────────────────────────────────
 // ──── MATRIX END
 // ──────────────────────────────────────────
+
+Matrix sumXaxis(Matrix mat) {
+  Matrix out(mat.rows, 1);
+
+  for (size_t i{0}; i < mat.rows; i++) {
+    for (size_t j{0}; j < mat.cols; j++) {
+      out.data[i] += mat.data[i * mat.cols + j];
+    }
+  }
+
+  return out;
+}
 
 }  // namespace NN

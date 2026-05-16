@@ -19,7 +19,7 @@ public:
   std::unordered_map<u32, ImageData> images;
 
   void loadTexture(std::vector<float> &data, u8 label, u32 index);
-  void draw();
+  void draw(u16 val);
 
   void setCurrentImg(u32 index);
   u32 getCurrentImg() { return _currentImg; };
