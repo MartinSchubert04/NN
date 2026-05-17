@@ -14,7 +14,7 @@ Application::Application(const ApplicationSpec &spec) {
 
   InitWindow(_data.width, _data.height, _data.title.c_str());
 
-  std::vector<u32> layers{784, 28, 32, 10};
+  std::vector<u32> layers{784, 28, 32, 20, 16, 10};
 
   f32 step = 0.005;
   u32 epochs = 5000;
@@ -50,7 +50,11 @@ void Application::run() {
 
     u16 value = nn.predict(img);
 
-    ui.draw(value);
+    std::array<f32, 784> &gridData = ui.getGridData();
+    std::vector<f32> gridVec(gridData.begin(), gridData.end());
+    u16 gridPrediction = nn.predict(gridVec);
+
+    ui.draw(gridPrediction, nn.getModelContext());
 
     onKeyPressed();
 

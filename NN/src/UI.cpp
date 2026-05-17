@@ -1,10 +1,13 @@
 #include "UI.h"
 #include "NeuralNetwork.h"
+#include "pch.h"
+#include <algorithm>
 
 namespace NN {
 
 void UI::init(NeuralNetwork::ModelContext ctx, Vector2 windowSize) {
   _windowSize = windowSize;
+  grid = Grid({100, 700}, 10.0f);
 
   Vector2 startPos{_windowSize.x / 3, _windowSize.y / 2};
   u32 offsetY = 30;
@@ -80,15 +83,15 @@ void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
   _loadedIndexes.insert(index);
 }
 
-void UI::draw(u16 val) {
+void UI::draw(u16 val, NeuralNetwork::ModelContext ctx) {
 
-  drawNet();
+  grid.draw();
+  drawNet(ctx);
 
   if (_loadedIndexes.size() == 0)
     return;
 
   f32 imgPosX = 100;
-  u32 fontSize = 20;
   f32 scale = 10.0f;
   f32 imgPosY = _windowSize.y / 2 - (28 * scale / 2);
 
@@ -97,25 +100,51 @@ void UI::draw(u16 val) {
   const char *status = val == img.label ? "SUCCES" : "FAIL";
 
   const char *text = TextFormat("Expected: %d | Predicted: %d | %s", img.label, val, status);
-  u16 textSize = MeasureText(text, fontSize);
+  u16 textSize = MeasureText(text, _fontSize);
   u32 centeredX = imgPosX + (28 * scale / 2 - textSize / 2);
-  u32 centeredY = imgPosY - 10 - fontSize;
+  u32 centeredY = imgPosY - 10 - _fontSize;
 
-  DrawText(TextFormat("Train time: %.2f", _trainingTime), centeredX, centeredY - 30, fontSize, RAYWHITE);
-  DrawText(text, centeredX, centeredY, fontSize, RAYWHITE);
+  DrawText(TextFormat("Train time: %.2f", _trainingTime), centeredX, centeredY - 30, _fontSize, RAYWHITE);
+  DrawText(text, centeredX, centeredY, _fontSize, RAYWHITE);
   DrawTextureEx(*img.texture, {imgPosX, imgPosY}, 0.0f, scale, WHITE);
+
+  DrawText(TextFormat("Drawing: %d", val), grid.pos.x, grid.pos.y - 30, _fontSize, RAYWHITE);
 }
 
-void UI::drawNet() {
+void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
 
   u32 radius = 10;
 
   for (auto &c : connections) {
-    DrawLine(c.start.x, c.start.y, c.end.x, c.end.y, RAYWHITE);
+    DrawLine(c.start.x, c.start.y, c.end.x, c.end.y, {203, 203, 203, 255});
   }
 
-  for (auto &n : neurons) {
-    DrawCircle(n.x, n.y, radius, RAYWHITE);
+  u32 neuronOffset = 0;
+
+  for (int i{1}; i < ctx.layers.size(); i++) {
+    Matrix &activations = ctx.forwardOut["A" + toString(i)];
+
+    f32 maxVal = *std::max_element(activations.data.begin(), activations.data.end());
+    f32 minVal = *std::min_element(activations.data.begin(), activations.data.end());
+
+    for (size_t j{0}; j < activations.data.size(); j++) {
+      f32 normalized = (maxVal == minVal) ? 0.0f : (activations.data[j] - minVal) / (maxVal - minVal);
+
+      u8 c = (u8)(normalized * 200);
+      Color color = {255, (u8)(255 - c), (u8)(255 - c), 255};
+
+      DrawCircle(neurons[neuronOffset + j].x, neurons[neuronOffset + j].y, radius, color);
+    }
+
+    if (i == ctx.layers.size() - 1) {
+      for (size_t j{0}; j < activations.data.size(); j++) {
+
+        DrawText(TextFormat("%.1f", activations.data[j] * 100), neurons[neuronOffset + j].x + 20,
+                 neurons[neuronOffset + j].y - _fontSize / 2, _fontSize, RAYWHITE);
+      }
+    }
+
+    neuronOffset += ctx.layers[i];
   }
 }
 
