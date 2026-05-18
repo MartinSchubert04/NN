@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 #include <array>
-
+#include "Box.h"
 namespace NN {
 
 struct Line {
@@ -27,6 +27,7 @@ class UI {
   };
 
 public:
+  UI() = default;
   ~UI();
 
   std::unordered_map<u32, ImageData> images;
@@ -50,6 +51,10 @@ public:
   b32 isImgLoaded(u32 index) { return _loadedIndexes.count(index) > 0; };
 
 private:
+  f32 _pixelSize = 10.f;
+  u32 _imgWidth = 28;
+  Box _netArea;
+  Box _predictionArea;
   f32 _trainingTime;
   f32 _fontSize = 20.f;
   Vector2 _windowSize;

@@ -2,24 +2,38 @@
 
 namespace NN {
 
-Grid::Grid(Vector2 pos, u32 cellSize) : pos(pos), cellSize(cellSize) {}
+Grid::Grid(Box area, u32 cellSize) : area(area), cellSize(cellSize) {
+  this->area.init();
+}
 
 void Grid::draw() {
   for (size_t i{0}; i < 28; i++) {
     for (size_t j{0}; j < 28; j++) {
-      f32 x = pos.x + j * cellSize;
-      f32 y = pos.y + i * cellSize;
+      f32 x = area.origin.x + j * cellSize;
+      f32 y = area.origin.y + i * cellSize;
       u8 val = (u8)(cells[i * 28 + j] * 255);
       DrawRectangle(x, y, cellSize, cellSize, {val, val, val, 255});
       // DrawRectangleLines(x, y, cellSize, cellSize, {50, 50, 50, 255});
     }
   }
 
+  const char *text = "Right click: draw | Left click: clear";
+  u8 fontSize = 20;
+  auto textWidth = MeasureText(text, fontSize);
+
+  DrawText(TextFormat("%s", text), area.center.x - textWidth / 2, area.origin.y + cellSize * 28 + 10, fontSize,
+           RAYWHITE);
+
+  const char *text2 = "<- -> keys | select an image from dataset";
+
+  auto textWidth2 = MeasureText(text2, fontSize);
+  DrawText(text2, area.center.x - textWidth2 / 2, area.origin.y + cellSize * 28 + 30, fontSize, RAYWHITE);
+
   // draw
   if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
     Vector2 mouse = GetMousePosition();
-    int col = (mouse.x - pos.x) / cellSize;
-    int row = (mouse.y - pos.y) / cellSize;
+    int col = (mouse.x - area.origin.x) / cellSize;
+    int row = (mouse.y - area.origin.y) / cellSize;
 
     if (col >= 0 && col < 28 && row >= 0 && row < 28)
       paint(cells, col, row, 0.15f);

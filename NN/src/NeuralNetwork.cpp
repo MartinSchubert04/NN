@@ -179,13 +179,12 @@ void NeuralNetwork::updateParameters() {
   }
 }
 
-f32 NeuralNetwork::accuracy(u32 numSamples) {
+f32 NeuralNetwork::accuracy(u32 numSamples, Matrix samples, Matrix labels) {
   u32 n = layers.size() - 1;
   u32 correct = 0;
 
   for (u32 i = 0; i < numSamples; i++) {
-    std::vector<f32> img(_modelData.testImages.data.begin() + i * 784,
-                         _modelData.testImages.data.begin() + i * 784 + 784);
+    std::vector<f32> img(samples.data.begin() + i * 784, samples.data.begin() + i * 784 + 784);
     forwardProp(Matrix(784, 1, img));
 
     Matrix &output = forwardOut["A" + toString(n)];
@@ -193,7 +192,7 @@ f32 NeuralNetwork::accuracy(u32 numSamples) {
 
     u32 actual = 0;
     for (u32 j = 0; j < 10; j++) {
-      if (_modelData.testLabels.data[i * 10 + j] == 1.0f) {
+      if (labels.data[i * 10 + j] == 1.0f) {
         actual = j;
         break;
       }
@@ -228,8 +227,9 @@ void NeuralNetwork::train() {
 
     if (i % (epochs / 20) == 0) {
       loss = crossEntropy(y, forwardOut["A" + toString(layers.size() - 1)]).sum();
-      f32 acc = accuracy(1000);
-      std::cout << "loss: " << loss << " | acc: " << acc << std::endl;
+      trainAcc = accuracy(accuracyBatchSize, _modelData.trainImages, _modelData.trainLabels);
+      testAcc = accuracy(accuracyBatchSize, _modelData.testImages, _modelData.testLabels);
+      std::cout << "loss: " << loss << " | train acc: " << trainAcc << " | test acc: " << testAcc << std::endl;
     }
   }
 }

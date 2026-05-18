@@ -4,6 +4,7 @@
 #include "Math.h"
 #include <array>
 #include "../include/raylib.h"
+#include "Box.h"
 
 namespace NN {
 
@@ -11,11 +12,11 @@ class Grid {
 
 public:
   std::array<f32, 784> cells{};
-  Vector2 pos;
+  Box area;
   u32 cellSize;
 
   Grid() = default;
-  Grid(Vector2 pos, u32 cellSize);
+  Grid(Box area, u32 cellSize);
 
   void draw();
   void paint(std::array<f32, 784> &grid, int col, int row, f32 brushSize);

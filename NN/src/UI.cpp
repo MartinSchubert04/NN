@@ -1,4 +1,5 @@
 #include "UI.h"
+#include "Box.h"
 #include "NeuralNetwork.h"
 #include "pch.h"
 #include <algorithm>
@@ -7,9 +8,13 @@ namespace NN {
 
 void UI::init(NeuralNetwork::ModelContext ctx, Vector2 windowSize) {
   _windowSize = windowSize;
-  grid = Grid({100, 700}, 10.0f);
+  grid = Grid(
+      Box({100, (_windowSize.y / 2) - (_pixelSize * _imgWidth) / 2}, _imgWidth * _pixelSize, _imgWidth * _pixelSize),
+      _pixelSize);
 
-  Vector2 startPos{_windowSize.x / 3, _windowSize.y / 2};
+  _netArea = Box({_windowSize.x / 3, 0}, windowSize.x / 3 * 2, windowSize.y);
+  _netArea.init();
+
   u32 offsetY = 30;
   u32 offsetX = 150;
 
@@ -18,8 +23,8 @@ void UI::init(NeuralNetwork::ModelContext ctx, Vector2 windowSize) {
     u32 totalHeight = (n - 1) * offsetY;
 
     for (size_t j{0}; j < n; j++) {
-      float posX = startPos.x + offsetX * (i - 1);
-      float posY = startPos.y - totalHeight / 2.0f + offsetY * j;
+      float posX = _netArea.origin.x + offsetX * (i - 1);
+      float posY = _netArea.center.y - totalHeight / 2 + offsetY * j;
 
       neurons.push_back({posX, posY});
     }
@@ -85,6 +90,10 @@ void UI::loadTexture(std::vector<float> &data, u8 label, u32 index) {
 
 void UI::draw(u16 val, NeuralNetwork::ModelContext ctx) {
 
+  // debbug
+  // DrawRectangleLines(_netArea.origin.x, _netArea.origin.y, _netArea.width, _netArea.height, RED);
+  // DrawRectangleLines(grid.area.origin.x - 1, grid.area.origin.y - 1, grid.area.width + 2, grid.area.height + 1, RED);
+
   grid.draw();
   drawNet(ctx);
 
@@ -93,7 +102,7 @@ void UI::draw(u16 val, NeuralNetwork::ModelContext ctx) {
 
   f32 imgPosX = 100;
   f32 scale = 10.0f;
-  f32 imgPosY = _windowSize.y / 2 - (28 * scale / 2);
+  f32 imgPosY = _windowSize.y / 3 - (28 * scale / 2);
 
   ImageData img = images[_currentImg];
 
@@ -101,14 +110,16 @@ void UI::draw(u16 val, NeuralNetwork::ModelContext ctx) {
 
   const char *text = TextFormat("Expected: %d | Predicted: %d | %s", img.label, val, status);
   u16 textSize = MeasureText(text, _fontSize);
-  u32 centeredX = imgPosX + (28 * scale / 2 - textSize / 2);
-  u32 centeredY = imgPosY - 10 - _fontSize;
+  u32 centeredX = grid.area.center.x - textSize / 2;
+  u32 centeredY = grid.area.origin.y - 10 - _fontSize;
 
-  DrawText(TextFormat("Train time: %.2f", _trainingTime), centeredX, centeredY - 30, _fontSize, RAYWHITE);
   DrawText(text, centeredX, centeredY, _fontSize, RAYWHITE);
-  DrawTextureEx(*img.texture, {imgPosX, imgPosY}, 0.0f, scale, WHITE);
 
-  DrawText(TextFormat("Drawing: %d", val), grid.pos.x, grid.pos.y - 30, _fontSize, RAYWHITE);
+  const char *text2 = TextFormat("Train time: %.2f s \nTrain accuracy: %.2f  | Test accuracy: %.2f | Loss %.10f",
+                                 _trainingTime, ctx.trainAcc * 100, ctx.testAcc * 100, ctx.loss);
+  int netDataTextSize = MeasureText(text2, _fontSize);
+
+  DrawText(text2, _windowSize.x - netDataTextSize - 10, _windowSize.y - 50, _fontSize, RAYWHITE);
 }
 
 void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
@@ -116,7 +127,8 @@ void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
   u32 radius = 10;
 
   for (auto &c : connections) {
-    DrawLine(c.start.x, c.start.y, c.end.x, c.end.y, {203, 203, 203, 255});
+    // DrawLine(c.start.x, c.start.y, c.end.x, c.end.y, {203, 203, 203, 255});
+    DrawLine(c.start.x, c.start.y, c.end.x, c.end.y, RAYWHITE);
   }
 
   u32 neuronOffset = 0;
@@ -130,10 +142,12 @@ void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
     for (size_t j{0}; j < activations.data.size(); j++) {
       f32 normalized = (maxVal == minVal) ? 0.0f : (activations.data[j] - minVal) / (maxVal - minVal);
 
-      u8 c = (u8)(normalized * 200);
-      Color color = {255, (u8)(255 - c), (u8)(255 - c), 255};
+      u8 c = (u8)(normalized * 255);
+      // Color color = {255, (u8)(255 - c), (u8)(255 - c), 255};
+      Color color = {c, c, c, 255};
 
       DrawCircle(neurons[neuronOffset + j].x, neurons[neuronOffset + j].y, radius, color);
+      DrawCircleLines(neurons[neuronOffset + j].x, neurons[neuronOffset + j].y, radius, RAYWHITE);
     }
 
     if (i == ctx.layers.size() - 1) {

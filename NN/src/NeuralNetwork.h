@@ -19,6 +19,9 @@ public:
   };
 
   struct ModelContext {
+    f32 loss;
+    f32 trainAcc;
+    f32 testAcc;
     std::vector<u32> layers;
     std::vector<Matrix> weights;
     std::vector<Matrix> bias;
@@ -27,8 +30,15 @@ public:
 
     ModelContext(std::vector<u32> layers, std::vector<Matrix> weights, std::vector<Matrix> bias,
                  std::unordered_map<std::string, Matrix> forwardOut,
-                 std::unordered_map<std::string, Matrix> backwardOut) :
-        layers(layers), weights(weights), bias(bias), forwardOut(forwardOut), backwardOut(backwardOut) {}
+                 std::unordered_map<std::string, Matrix> backwardOut, f32 loss, f32 trainAcc, f32 testAcc) :
+        layers(layers),
+        weights(weights),
+        bias(bias),
+        forwardOut(forwardOut),
+        backwardOut(backwardOut),
+        loss(loss),
+        trainAcc(trainAcc),
+        testAcc(testAcc) {}
   };
 
 public:
@@ -38,6 +48,9 @@ public:
   u32 epochs;
   std::vector<u32> layers;
   f32 loss;
+  f32 trainAcc;
+  f32 testAcc;
+  u32 accuracyBatchSize = 1000;
 
   std::vector<Matrix> weights;
   std::vector<Matrix> bias;
@@ -57,11 +70,13 @@ public:
 
   ModelData &getModelData() { return _modelData; }
 
-  ModelContext getModelContext() { return ModelContext(layers, weights, bias, forwardOut, backwardOut); }
+  ModelContext getModelContext() {
+    return ModelContext(layers, weights, bias, forwardOut, backwardOut, loss, trainAcc, testAcc);
+  }
 
   void forwardProp(Matrix input);
   void backwardProp(Matrix y);
-  f32 accuracy(u32 numSamples);
+  f32 accuracy(u32 numSamples, Matrix samples, Matrix labels);
   void train();
   u16 predict(std::vector<f32> img);
 };

@@ -5,6 +5,8 @@
 #include "UI.h"
 #include "NeuralNetwork.h"
 #include "Math.h"
+#include <thread>
+#include <atomic>
 
 namespace NN {
 
@@ -34,6 +36,7 @@ public:
   void loadImage(u32 index);
   u8 getLabel(std::vector<f32> &data, u64 index);
   void onKeyPressed();
+  void copyImageToGrid(u32 index);
 
 private:
   struct ApplicationData {

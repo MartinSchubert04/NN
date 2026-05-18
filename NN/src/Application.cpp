@@ -32,6 +32,7 @@ Application::Application(const ApplicationSpec &spec) {
   ui.setTrainingDuration(duration.count() / 1000.f);
 
   loadImage(0);
+  copyImageToGrid(0);
 }
 
 void Application::run() {
@@ -42,13 +43,6 @@ void Application::run() {
 
     BeginDrawing();
     ClearBackground({33, 60, 81});
-
-    u32 index = ui.getCurrentImg();
-
-    std::vector<f32> img(nn._modelData.testImages.data.begin() + index * 784,
-                         nn._modelData.testImages.data.begin() + index * 784 + 784);
-
-    u16 value = nn.predict(img);
 
     std::array<f32, 784> &gridData = ui.getGridData();
     std::vector<f32> gridVec(gridData.begin(), gridData.end());
@@ -104,6 +98,13 @@ void Application::onKeyPressed() {
     ui.moveImg(1);
     loadImage(ui.getCurrentImg());
   }
+}
+
+void Application::copyImageToGrid(u32 index) {
+  auto &gridData = ui.getGridData();
+  auto &imgData = ui.images[index].data;
+  for (int i = 0; i < 784; i++)
+    gridData[i] = imgData[i];
 }
 
 }  // namespace NN
