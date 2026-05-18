@@ -18,8 +18,9 @@ public:
   Grid() = default;
   Grid(Box area, u32 cellSize);
 
-  void draw();
+  void draw(u16 prediction);
   void paint(std::array<f32, 784> &grid, int col, int row, f32 brushSize);
+  b32 allZeros();
   void clear();
 };
 

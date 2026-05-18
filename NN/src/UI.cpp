@@ -94,26 +94,11 @@ void UI::draw(u16 val, NeuralNetwork::ModelContext ctx) {
   // DrawRectangleLines(_netArea.origin.x, _netArea.origin.y, _netArea.width, _netArea.height, RED);
   // DrawRectangleLines(grid.area.origin.x - 1, grid.area.origin.y - 1, grid.area.width + 2, grid.area.height + 1, RED);
 
-  grid.draw();
+  grid.draw(val);
   drawNet(ctx);
 
   if (_loadedIndexes.size() == 0)
     return;
-
-  f32 imgPosX = 100;
-  f32 scale = 10.0f;
-  f32 imgPosY = _windowSize.y / 3 - (28 * scale / 2);
-
-  ImageData img = images[_currentImg];
-
-  const char *status = val == img.label ? "SUCCES" : "FAIL";
-
-  const char *text = TextFormat("Expected: %d | Predicted: %d | %s", img.label, val, status);
-  u16 textSize = MeasureText(text, _fontSize);
-  u32 centeredX = grid.area.center.x - textSize / 2;
-  u32 centeredY = grid.area.origin.y - 10 - _fontSize;
-
-  DrawText(text, centeredX, centeredY, _fontSize, RAYWHITE);
 
   const char *text2 = TextFormat("Train time: %.2f s \nTrain accuracy: %.2f  | Test accuracy: %.2f | Loss %.10f",
                                  _trainingTime, ctx.trainAcc * 100, ctx.testAcc * 100, ctx.loss);

@@ -1,0 +1,8 @@
+If:
+  PathMatch: NN/src/.*
+CompileFlags:
+  Add:
+    - -std=c++17
+    - -x
+    - c++
+    - -INN/include

@@ -3,12 +3,9 @@
 #include "Grid.h"
 #include "NeuralNetwork.h"
 #include "pch.h"
-#include "../include/raylib.h"
-#include <type_traits>
+#include "raylib.h"
 #include <unordered_set>
 #include <unordered_map>
-#include <utility>
-#include <vector>
 #include <array>
 #include "Box.h"
 namespace NN {

@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <fstream>
 
 using int8_t = int8_t;
 using int16_t = int16_t;

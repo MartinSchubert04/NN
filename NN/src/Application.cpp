@@ -1,8 +1,9 @@
 #include "Application.h"
 #include "NeuralNetwork.h"
-#include <string>
-#include <vector>
+#include "pch.h"
 #include <chrono>
+#include <vector>
+#include <filesystem>
 
 namespace NN {
 
@@ -23,13 +24,27 @@ Application::Application(const ApplicationSpec &spec) {
 
   ui.init(nn.getModelContext(), {_data.width, _data.height});
 
-  auto start = std::chrono::high_resolution_clock::now();
+  const char *path = DATA_PATH "model.data";
 
-  nn.train();
+  if (!std::filesystem::exists(path)) {
+    auto start = std::chrono::high_resolution_clock::now();
 
-  auto end = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-  ui.setTrainingDuration(duration.count() / 1000.f);
+    nn.train();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    ui.setTrainingDuration(duration.count() / 1000.f);
+
+    auto context = nn.getModelContext();
+    _serializer.save(path, context);
+  } else {
+
+    auto context = nn.getModelContext();
+    _serializer.load(path, context);
+    nn.setWeights(context.weights);
+    nn.setBias(context.bias);
+    nn.setMetrics(context.loss, context.trainAcc, context.testAcc);
+  }
 
   loadImage(0);
   copyImageToGrid(0);
@@ -92,11 +107,15 @@ void Application::onKeyPressed() {
 
   if (IsKeyPressed(KEY_LEFT)) {
     ui.moveImg(-1);
-    loadImage(ui.getCurrentImg());
+    u32 idx = ui.getCurrentImg();
+    loadImage(idx);
+    copyImageToGrid(idx);
   }
   if (IsKeyPressed(KEY_RIGHT)) {
     ui.moveImg(1);
-    loadImage(ui.getCurrentImg());
+    u32 idx = ui.getCurrentImg();
+    loadImage(idx);
+    copyImageToGrid(idx);
   }
 }
 

@@ -61,12 +61,19 @@ public:
   NeuralNetwork(std::vector<u32> layers, f32 step, u32 epochs);
 
   Matrix loadFile(u32 rows, u32 cols, std::string filepath);
+
   std::vector<f32> oneHotEncode(std::vector<f32> &out, std::vector<f32> &data);
   Matrix crossEntropy(const Matrix &p, const Matrix &q);
   Matrix relu(const Matrix &mat);
   Matrix d_relu(const Matrix &mat);
   Matrix softmax(const Matrix &mat);
+
   void updateParameters();
+  void forwardProp(Matrix input);
+  void backwardProp(Matrix y);
+  f32 accuracy(u32 numSamples, Matrix samples, Matrix labels);
+  void train();
+  u16 predict(std::vector<f32> img);
 
   ModelData &getModelData() { return _modelData; }
 
@@ -74,11 +81,13 @@ public:
     return ModelContext(layers, weights, bias, forwardOut, backwardOut, loss, trainAcc, testAcc);
   }
 
-  void forwardProp(Matrix input);
-  void backwardProp(Matrix y);
-  f32 accuracy(u32 numSamples, Matrix samples, Matrix labels);
-  void train();
-  u16 predict(std::vector<f32> img);
+  void setWeights(std::vector<Matrix> w) { weights = w; };
+  void setBias(std::vector<Matrix> b) { bias = b; }
+  void setMetrics(f32 loss, f32 trainAccuracy, f32 testAccuracy) {
+    this->loss = loss;
+    this->trainAcc = trainAccuracy;
+    this->testAcc = testAccuracy;
+  };
 };
 
 }  // namespace NN

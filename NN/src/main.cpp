@@ -1,7 +1,4 @@
-#include "Math.h"
-#include "NeuralNetwork.h"
 #include "Application.h"
-#include "pch.h"
 
 int main() {
   NN::Application *app = new NN::Application({"NN", 1500, 1000, 60});

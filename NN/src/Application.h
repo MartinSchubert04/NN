@@ -1,10 +1,9 @@
 #pragma once
 
+#include "Serializer.h"
 #include "pch.h"
-#include "../include/raylib.h"
 #include "UI.h"
 #include "NeuralNetwork.h"
-#include "Math.h"
 #include <thread>
 #include <atomic>
 
@@ -47,6 +46,7 @@ private:
   };
 
   ApplicationData _data;
+  Serializer _serializer;
 };
 
 }  // namespace NN
