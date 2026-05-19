@@ -63,7 +63,7 @@ public:
   u32 t = 0;
 
   NeuralNetwork() = default;
-  NeuralNetwork(std::vector<u32> layers, u32 epochs);
+  NeuralNetwork(std::vector<u32> layers, u32 epochs, u32 batchSize);
 
   Matrix loadFile(u32 rows, u32 cols, std::string filepath);
 
@@ -79,8 +79,8 @@ public:
   void train();
   u16 predict(std::vector<f32> img);
 
+  void onLoadContext(ModelContext context);
   ModelData &getModelData() { return _modelData; }
-
   ModelContext getModelContext() {
     return ModelContext(layers, weights, bias, forwardOut, backwardOut, loss, trainAcc, testAcc);
   }
@@ -95,6 +95,7 @@ public:
 
 private:
   Ref<Optimizer> _optimizer;
+  u32 _batchSize;
 };
 
 }  // namespace NN

@@ -34,6 +34,7 @@ public:
   Grid grid;
 
   void init(NeuralNetwork::ModelContext ctx, Vector2 windowSize);
+  void setupNetPositions(NeuralNetwork::ModelContext ctx);
   void loadTexture(std::vector<float> &data, u8 label, u32 index);
   void draw(u16 val, NeuralNetwork::ModelContext ctx);
   void drawNet(NeuralNetwork::ModelContext &ctx);

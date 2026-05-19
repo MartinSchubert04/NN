@@ -15,35 +15,7 @@ void UI::init(NeuralNetwork::ModelContext ctx, Vector2 windowSize) {
   _netArea = Box({_windowSize.x / 3, 0}, windowSize.x / 3 * 2, windowSize.y);
   _netArea.init();
 
-  u32 offsetY = 30;
-  u32 offsetX = 150;
-
-  for (size_t i{1}; i < ctx.layers.size(); i++) {
-    u32 n = ctx.layers[i];
-    u32 totalHeight = (n - 1) * offsetY;
-
-    for (size_t j{0}; j < n; j++) {
-      float posX = _netArea.origin.x + offsetX * (i - 1);
-      float posY = _netArea.center.y - totalHeight / 2 + offsetY * j;
-
-      neurons.push_back({posX, posY});
-    }
-  }
-
-  std::vector<u32> layerOffset(ctx.layers.size(), 0);
-  for (size_t i{2}; i < ctx.layers.size(); i++)
-    layerOffset[i] = layerOffset[i - 1] + ctx.layers[i - 1];
-
-  for (size_t i{1}; i < ctx.layers.size() - 1; i++) {
-    for (size_t j{0}; j < ctx.layers[i]; j++) {
-      for (size_t k{0}; k < ctx.layers[i + 1]; k++) {
-        Line l;
-        l.start = neurons[layerOffset[i] + j];
-        l.end = neurons[layerOffset[i + 1] + k];
-        connections.push_back(l);
-      }
-    }
-  }
+  setupNetPositions(ctx);
 }
 
 UI::~UI() {
@@ -144,6 +116,39 @@ void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
     }
 
     neuronOffset += ctx.layers[i];
+  }
+}
+
+void UI::setupNetPositions(NeuralNetwork::ModelContext ctx) {
+
+  u32 offsetY = 30;
+  u32 offsetX = _netArea.width / ctx.layers.size();
+
+  for (size_t i{1}; i < ctx.layers.size(); i++) {
+    u32 n = ctx.layers[i];
+    u32 totalHeight = (n - 1) * offsetY;
+
+    for (size_t j{0}; j < n; j++) {
+      float posX = _netArea.origin.x + offsetX * (i - 1);
+      float posY = _netArea.center.y - totalHeight / 2 + offsetY * j;
+
+      neurons.push_back({posX, posY});
+    }
+  }
+
+  std::vector<u32> layerOffset(ctx.layers.size(), 0);
+  for (size_t i{2}; i < ctx.layers.size(); i++)
+    layerOffset[i] = layerOffset[i - 1] + ctx.layers[i - 1];
+
+  for (size_t i{1}; i < ctx.layers.size() - 1; i++) {
+    for (size_t j{0}; j < ctx.layers[i]; j++) {
+      for (size_t k{0}; k < ctx.layers[i + 1]; k++) {
+        Line l;
+        l.start = neurons[layerOffset[i] + j];
+        l.end = neurons[layerOffset[i + 1] + k];
+        connections.push_back(l);
+      }
+    }
   }
 }
 

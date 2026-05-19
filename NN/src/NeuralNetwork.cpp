@@ -2,16 +2,15 @@
 #include "Math.h"
 #include "Optimizer.h"
 #include "pch.h"
-#include <cstdio>
+#include <cmath>
 #include <fstream>
 #include <random>
-#include <string>
 #include <algorithm>
-#include <vector>
 
 namespace NN {
 
-NeuralNetwork::NeuralNetwork(std::vector<u32> layers, u32 epochs) : layers(layers), epochs(epochs) {
+NeuralNetwork::NeuralNetwork(std::vector<u32> layers, u32 epochs, u32 batchSize) :
+    layers(layers), epochs(epochs), _batchSize(batchSize) {
 
   _modelData.trainImages = loadFile(60000, 784, DATA_PATH "train_images.mat");
   _modelData.testImages = loadFile(10000, 784, DATA_PATH "test_images.mat");
@@ -26,7 +25,7 @@ NeuralNetwork::NeuralNetwork(std::vector<u32> layers, u32 epochs) : layers(layer
   oneHotEncode(_modelData.testLabels.data, testLabelsFile.data);
 
   // init w & b
-  std::uniform_real_distribution<f32> dist(-0.5f, 0.5f);
+  std::normal_distribution<f32> dist(0.0f, 1.0f);
 
   weights.resize(layers.size());
   bias.resize(layers.size());
@@ -34,8 +33,10 @@ NeuralNetwork::NeuralNetwork(std::vector<u32> layers, u32 epochs) : layers(layer
   for (size_t i{1}; i < layers.size(); i++) {
     Ref<Matrix> w = createRef<Matrix>(layers[i], layers[i - 1]);
 
+    f32 std_dev = std::sqrt(2.0f / layers[i - 1]);
+
     for (size_t j{0}; j < w->data.size(); j++) {
-      w->data[j] = dist(rng());
+      w->data[j] = dist(rng()) * std_dev;
     }
 
     weights[i] = w;
@@ -201,25 +202,53 @@ f32 NeuralNetwork::accuracy(u32 numSamples, Matrix samples, Matrix labels) {
 
 void NeuralNetwork::train() {
 
-  for (size_t i{0}; i < epochs; i++) {
+  for (size_t e{0}; e < epochs; e++) {
 
-    u32 index = std::uniform_int_distribution<u32>(0, _modelData.trainImages.rows)(rng());
-    std::vector<f32> sampleImage(_modelData.trainImages.data.begin() + index * 784,
-                                 _modelData.trainImages.data.begin() + index * 784 + 784);
+    std::unordered_map<std::string, Matrix> gradients;
 
-    Matrix x(784, 1, sampleImage);
+    for (size_t i{0}; i < _batchSize; i++) {
 
-    std::vector<f32> sampleLabel(_modelData.trainLabels.data.begin() + index * 10,
-                                 _modelData.trainLabels.data.begin() + index * 10 + 10);
-    Matrix y(10, 1, sampleLabel);
+      u32 index = std::uniform_int_distribution<u32>(0, _modelData.trainImages.rows - 1)(rng());
+      std::vector<f32> sampleImage(_modelData.trainImages.data.begin() + index * 784,
+                                   _modelData.trainImages.data.begin() + index * 784 + 784);
 
-    forwardProp(x);
+      Matrix x(784, 1, sampleImage);
 
-    backwardProp(y);
+      std::vector<f32> sampleLabel(_modelData.trainLabels.data.begin() + index * 10,
+                                   _modelData.trainLabels.data.begin() + index * 10 + 10);
+      Matrix y(10, 1, sampleLabel);
 
-    _optimizer->step(backwardOut);
+      forwardProp(x);
 
-    if (i % (epochs / 20) == 0) {
+      backwardProp(y);
+
+      for (size_t l{1}; l < layers.size(); l++) {
+        std::string dW = "dW" + toString(l);
+        std::string db = "db" + toString(l);
+
+        if (gradients.find(dW) == gradients.end()) {
+          gradients[dW] = backwardOut[dW];
+          gradients[db] = backwardOut[db];
+        } else {
+          gradients[dW] = gradients[dW] + backwardOut[dW];
+          gradients[db] = gradients[db] + backwardOut[db];
+        }
+      }
+    }
+
+    for (size_t l{1}; l < layers.size(); l++) {
+      gradients["dW" + toString(l)] = gradients["dW" + toString(l)] * (1.0f / _batchSize);
+      gradients["db" + toString(l)] = gradients["db" + toString(l)] * (1.0f / _batchSize);
+    }
+
+    _optimizer->step(gradients);
+
+    if (e % (epochs / 5) == 0) {
+      u32 index = std::uniform_int_distribution<u32>(0, _modelData.trainImages.rows - 1)(rng());
+      std::vector<f32> sampleLabel(_modelData.trainLabels.data.begin() + index * 10,
+                                   _modelData.trainLabels.data.begin() + index * 10 + 10);
+      Matrix y(10, 1, sampleLabel);
+
       loss = crossEntropy(y, forwardOut["A" + toString(layers.size() - 1)]).sum();
       trainAcc = accuracy(accuracyBatchSize, _modelData.trainImages, _modelData.trainLabels);
       testAcc = accuracy(accuracyBatchSize, _modelData.testImages, _modelData.testLabels);
@@ -238,6 +267,13 @@ u16 NeuralNetwork::predict(std::vector<f32> img) {
   u32 predicted = std::max_element(output.data.begin(), output.data.end()) - output.data.begin();
 
   return predicted;
+}
+
+void NeuralNetwork::onLoadContext(ModelContext context) {
+  setWeights(context.weights);
+  setBias(context.bias);
+  setMetrics(context.loss, context.trainAcc, context.testAcc);
+  _optimizer = createRef<Optimizer>(context.weights, context.bias, context.layers.size());
 }
 
 }  // namespace NN
