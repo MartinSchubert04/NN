@@ -15,12 +15,13 @@ Application::Application(const ApplicationSpec &spec) {
 
   InitWindow(_data.width, _data.height, _data.title.c_str());
 
-  std::vector<u32> layers{784, 32, 32, 16, 16, 10};
+  std::vector<u32> layers{784, 32, 16, 10};
 
   f32 step = 0.001;
-  u32 epochs = 5000;
+  u32 epochs = 1000;
+  u32 batchSize = 32;
 
-  nn = NN::NeuralNetwork(layers, epochs, 32);
+  nn = NN::NeuralNetwork(layers, epochs, batchSize);
 
   ui.init(nn.getModelContext(), {_data.width, _data.height});
 

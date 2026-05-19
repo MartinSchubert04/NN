@@ -15,6 +15,12 @@ struct Line {
   Vector2 end;
 };
 
+struct Neuron {
+  Vector2 pos;
+  f32 radius;
+  Neuron(Vector2 pos, f32 radius) : pos(pos), radius(radius) {}
+};
+
 class UI {
 
   struct ImageData {
@@ -28,7 +34,7 @@ public:
   ~UI();
 
   std::unordered_map<u32, ImageData> images;
-  std::vector<Vector2> neurons;
+  std::vector<Neuron> neurons;
   std::vector<Line> connections;
 
   Grid grid;

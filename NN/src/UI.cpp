@@ -3,6 +3,7 @@
 #include "NeuralNetwork.h"
 #include "pch.h"
 #include <algorithm>
+#include <filesystem>
 
 namespace NN {
 
@@ -72,11 +73,11 @@ void UI::draw(u16 val, NeuralNetwork::ModelContext ctx) {
   if (_loadedIndexes.size() == 0)
     return;
 
-  const char *text2 = TextFormat("Train time: %.2f s \nTrain accuracy: %.2f  | Test accuracy: %.2f | Loss %.10f",
+  const char *text2 = TextFormat("Train time: %.2f s | Train accuracy: %.2f  | Test accuracy: %.2f | Loss %.10f",
                                  _trainingTime, ctx.trainAcc * 100, ctx.testAcc * 100, ctx.loss);
   int netDataTextSize = MeasureText(text2, _fontSize);
 
-  DrawText(text2, _windowSize.x - netDataTextSize - 10, _windowSize.y - 50, _fontSize, RAYWHITE);
+  DrawText(text2, _windowSize.x - netDataTextSize - 10, _windowSize.y - _fontSize - 5, _fontSize, RAYWHITE);
 }
 
 void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
@@ -102,16 +103,16 @@ void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
       u8 c = (u8)(normalized * 255);
       // Color color = {255, (u8)(255 - c), (u8)(255 - c), 255};
       Color color = {c, c, c, 255};
-
-      DrawCircle(neurons[neuronOffset + j].x, neurons[neuronOffset + j].y, radius, color);
-      DrawCircleLines(neurons[neuronOffset + j].x, neurons[neuronOffset + j].y, radius, RAYWHITE);
+      auto n = neurons[neuronOffset + j];
+      DrawCircle(n.pos.x, n.pos.y, n.radius, color);
+      DrawCircleLines(n.pos.x, n.pos.y, n.radius, RAYWHITE);
     }
 
     if (i == ctx.layers.size() - 1) {
       for (size_t j{0}; j < activations.data.size(); j++) {
 
-        DrawText(TextFormat("%.1f", activations.data[j] * 100), neurons[neuronOffset + j].x + 20,
-                 neurons[neuronOffset + j].y - _fontSize / 2, _fontSize, RAYWHITE);
+        DrawText(TextFormat("%.1f", activations.data[j] * 100), neurons[neuronOffset + j].pos.x + 20,
+                 neurons[neuronOffset + j].pos.y - _fontSize / 2, _fontSize, RAYWHITE);
       }
     }
 
@@ -121,18 +122,38 @@ void UI::drawNet(NeuralNetwork::ModelContext &ctx) {
 
 void UI::setupNetPositions(NeuralNetwork::ModelContext ctx) {
 
-  u32 offsetY = 30;
-  u32 offsetX = _netArea.width / ctx.layers.size();
+  const f32 H = _netArea.height;
+  const f32 maxRadius = 15.f;
+  const f32 minGap = 10.f;
+  const f32 margin = maxRadius * 2.f + 80.f;
+
+  u32 offsetX = _netArea.width / (ctx.layers.size() - 1);
 
   for (size_t i{1}; i < ctx.layers.size(); i++) {
     u32 n = ctx.layers[i];
-    u32 totalHeight = (n - 1) * offsetY;
+
+    f32 radius, spacing;
+    if (n == 1) {
+      radius = maxRadius;
+      spacing = 0.f;
+    } else {
+      // max radius so n neurons with minGap between edges fit exactly in H
+      radius = std::min(maxRadius, (H - (n - 1) * minGap) / (2.f * n));
+      radius = std::max(radius, 1.f);
+      // spacing between centers so outermost neuron edges touch area bounds
+      spacing = (H - margin) / (f32)(n - 1);
+      if (i == ctx.layers.size() - 1) {
+        spacing = maxRadius + 30.f;
+      }
+    }
+
+    f32 totalHeight = (n > 1) ? (n - 1) * spacing : 0.f;
 
     for (size_t j{0}; j < n; j++) {
-      float posX = _netArea.origin.x + offsetX * (i - 1);
-      float posY = _netArea.center.y - totalHeight / 2 + offsetY * j;
+      float posX = _netArea.origin.x + offsetX / 2.f + offsetX * (i - 1);
+      float posY = _netArea.center.y - totalHeight / 2.f + spacing * j;
 
-      neurons.push_back({posX, posY});
+      neurons.push_back({{posX, posY}, radius});
     }
   }
 
@@ -144,8 +165,8 @@ void UI::setupNetPositions(NeuralNetwork::ModelContext ctx) {
     for (size_t j{0}; j < ctx.layers[i]; j++) {
       for (size_t k{0}; k < ctx.layers[i + 1]; k++) {
         Line l;
-        l.start = neurons[layerOffset[i] + j];
-        l.end = neurons[layerOffset[i + 1] + k];
+        l.start = neurons[layerOffset[i] + j].pos;
+        l.end = neurons[layerOffset[i + 1] + k].pos;
         connections.push_back(l);
       }
     }

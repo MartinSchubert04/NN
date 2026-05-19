@@ -6,6 +6,7 @@
 #include <fstream>
 #include <random>
 #include <algorithm>
+#include <vector>
 
 namespace NN {
 
@@ -244,12 +245,23 @@ void NeuralNetwork::train() {
     _optimizer->step(gradients);
 
     if (e % (epochs / 5) == 0) {
-      u32 index = std::uniform_int_distribution<u32>(0, _modelData.trainImages.rows - 1)(rng());
-      std::vector<f32> sampleLabel(_modelData.trainLabels.data.begin() + index * 10,
-                                   _modelData.trainLabels.data.begin() + index * 10 + 10);
-      Matrix y(10, 1, sampleLabel);
+      f32 sum = 0.f;
+      for (size_t i{0}; i < _batchSize; i++) {
+        u32 index = std::uniform_int_distribution<u32>(0, _modelData.trainImages.rows - 1)(rng());
 
-      loss = crossEntropy(y, forwardOut["A" + toString(layers.size() - 1)]).sum();
+        std::vector<f32> sampleImage(_modelData.trainImages.data.begin() + index * 784,
+                                     _modelData.trainImages.data.begin() + index * 784 + 784);
+        std::vector<f32> sampleLabel(_modelData.trainLabels.data.begin() + index * 10,
+                                     _modelData.trainLabels.data.begin() + index * 10 + 10);
+
+        forwardProp(Matrix(784, 1, sampleImage));
+
+        Matrix y(10, 1, sampleLabel);
+        sum += crossEntropy(y, forwardOut["A" + toString(layers.size() - 1)]).sum();
+      }
+
+      loss = sum / _batchSize;
+
       trainAcc = accuracy(accuracyBatchSize, _modelData.trainImages, _modelData.trainLabels);
       testAcc = accuracy(accuracyBatchSize, _modelData.testImages, _modelData.testLabels);
       std::cout << "loss: " << loss << " | train acc: " << trainAcc << " | test acc: " << testAcc << std::endl;
