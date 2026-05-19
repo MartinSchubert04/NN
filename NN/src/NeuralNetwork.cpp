@@ -1,5 +1,6 @@
 #include "NeuralNetwork.h"
 #include "Math.h"
+#include "Optimizer.h"
 #include "pch.h"
 #include <cstdio>
 #include <fstream>
@@ -10,8 +11,7 @@
 
 namespace NN {
 
-NeuralNetwork::NeuralNetwork(std::vector<u32> layers, f32 step, u32 epochs) :
-    layers(layers), learningStep(step), epochs(epochs) {
+NeuralNetwork::NeuralNetwork(std::vector<u32> layers, u32 epochs) : layers(layers), epochs(epochs) {
 
   _modelData.trainImages = loadFile(60000, 784, DATA_PATH "train_images.mat");
   _modelData.testImages = loadFile(10000, 784, DATA_PATH "test_images.mat");
@@ -32,19 +32,21 @@ NeuralNetwork::NeuralNetwork(std::vector<u32> layers, f32 step, u32 epochs) :
   bias.resize(layers.size());
 
   for (size_t i{1}; i < layers.size(); i++) {
-    Matrix w(layers[i], layers[i - 1]);
+    Ref<Matrix> w = createRef<Matrix>(layers[i], layers[i - 1]);
 
-    for (size_t j{0}; j < w.data.size(); j++) {
-      w.data[j] = dist(rng());
+    for (size_t j{0}; j < w->data.size(); j++) {
+      w->data[j] = dist(rng());
     }
 
     weights[i] = w;
 
-    Matrix b(layers[i], 1);
-    b.fill(0);
+    Ref<Matrix> b = createRef<Matrix>(layers[i], 1);
+    b->fill(0);
 
     bias[i] = b;
   }
+
+  _optimizer = createRef<Optimizer>(weights, bias, layers.size());
 }
 
 std::vector<f32> NeuralNetwork::oneHotEncode(std::vector<f32> &out, std::vector<f32> &data) {
@@ -140,13 +142,13 @@ void NeuralNetwork::forwardProp(Matrix input) {
   forwardOut["A0"] = input;
 
   for (size_t i{1}; i < n; i++) {
-    forwardOut["Z" + toString(i)] = weights[i] * forwardOut["A" + toString(i - 1)] + bias[i];
+    forwardOut["Z" + toString(i)] = *weights[i] * forwardOut["A" + toString(i - 1)] + *bias[i];
 
     forwardOut["A" + toString(i)] = relu(forwardOut["Z" + toString(i)]);
   }
 
   // last layers
-  forwardOut["Z" + toString(n)] = weights[n] * forwardOut["A" + toString(n - 1)] + bias[n];
+  forwardOut["Z" + toString(n)] = *weights[n] * forwardOut["A" + toString(n - 1)] + *bias[n];
   forwardOut["A" + toString(n)] = softmax(forwardOut["Z" + toString(n)]);
 }
 
@@ -163,19 +165,11 @@ void NeuralNetwork::backwardProp(Matrix y) {
 
   for (int i{n - 1}; i > 0; i--) {
     backwardOut["dZ" + toString(i)] =
-        (weights[i + 1].T() * backwardOut["dZ" + toString(i + 1)]).elemMult(d_relu(forwardOut["Z" + toString(i)]));
+        ((*weights[i + 1]).T() * backwardOut["dZ" + toString(i + 1)]).elemMult(d_relu(forwardOut["Z" + toString(i)]));
 
     backwardOut["dW" + toString(i)] = backwardOut["dZ" + toString(i)] * forwardOut["A" + toString(i - 1)].T();
 
     backwardOut["db" + toString(i)] = sumXaxis(backwardOut["dZ" + toString(i)]);
-  }
-}
-
-void NeuralNetwork::updateParameters() {
-
-  for (size_t i{1}; i < layers.size(); i++) {
-    weights[i] = weights[i] - (backwardOut["dW" + toString(i)] * learningStep);
-    bias[i] = bias[i] - (backwardOut["db" + toString(i)] * learningStep);
   }
 }
 
@@ -223,7 +217,7 @@ void NeuralNetwork::train() {
 
     backwardProp(y);
 
-    updateParameters();
+    _optimizer->step(backwardOut);
 
     if (i % (epochs / 20) == 0) {
       loss = crossEntropy(y, forwardOut["A" + toString(layers.size() - 1)]).sum();

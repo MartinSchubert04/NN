@@ -85,6 +85,17 @@ Matrix Matrix::copy() {
   return result;
 }
 
+Matrix Matrix::operator/(const Matrix &mat) {
+  if (rows != mat.rows || cols != mat.cols)
+    throw std::runtime_error("operator/ dimension mismatch: " + std::to_string(rows) + "x" + std::to_string(cols) +
+                             " / " + std::to_string(mat.rows) + "x" + std::to_string(mat.cols));
+
+  Matrix out(rows, cols);
+  for (size_t i{0}; i < rows * cols; i++)
+    out.data[i] = data[i] / mat.data[i];
+  return out;
+}
+
 Matrix Matrix::operator*(const Matrix &mat) {
   if (this->cols != mat.rows) {
     throw std::invalid_argument(std::string("Dimensions do not align for multiplication: ") + "(" +
@@ -189,6 +200,18 @@ Matrix Matrix::operator+(const Matrix &mat) {
   return result;
 }
 
+Matrix Matrix::operator+(const f32 &scalar) {
+  Matrix result(this->rows, this->cols);
+
+  size_t size = cols * rows;
+
+  for (size_t i{0}; i < size; i++) {
+    result.data[i] = this->data[i] + scalar;
+  }
+
+  return result;
+}
+
 Matrix Matrix::operator-(const Matrix &mat) {
   if (mat.rows != this->rows || mat.cols != this->cols) {
     throw std::invalid_argument(std::string("Dimensions do not align for substraction: ") + "(" + std::to_string(rows) +
@@ -229,6 +252,13 @@ Matrix sumXaxis(const Matrix &mat) {
     }
   }
 
+  return out;
+}
+
+Matrix sqrt(const Matrix &mat) {
+  Matrix out(mat.rows, mat.cols);
+  for (size_t i{0}; i < mat.rows * mat.cols; i++)
+    out.data[i] = std::sqrt(mat.data[i]);
   return out;
 }
 

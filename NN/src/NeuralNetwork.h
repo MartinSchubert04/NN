@@ -4,7 +4,9 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "Optimizer.h"
 #include "Random.h"
+#include "pch.h"
 
 namespace NN {
 
@@ -23,12 +25,12 @@ public:
     f32 trainAcc;
     f32 testAcc;
     std::vector<u32> layers;
-    std::vector<Matrix> weights;
-    std::vector<Matrix> bias;
+    std::vector<Ref<Matrix>> weights;
+    std::vector<Ref<Matrix>> bias;
     std::unordered_map<std::string, Matrix> forwardOut;
     std::unordered_map<std::string, Matrix> backwardOut;
 
-    ModelContext(std::vector<u32> layers, std::vector<Matrix> weights, std::vector<Matrix> bias,
+    ModelContext(std::vector<u32> layers, std::vector<Ref<Matrix>> weights, std::vector<Ref<Matrix>> bias,
                  std::unordered_map<std::string, Matrix> forwardOut,
                  std::unordered_map<std::string, Matrix> backwardOut, f32 loss, f32 trainAcc, f32 testAcc) :
         layers(layers),
@@ -44,7 +46,6 @@ public:
 public:
   ModelData _modelData;
 
-  f32 learningStep;
   u32 epochs;
   std::vector<u32> layers;
   f32 loss;
@@ -52,13 +53,17 @@ public:
   f32 testAcc;
   u32 accuracyBatchSize = 1000;
 
-  std::vector<Matrix> weights;
-  std::vector<Matrix> bias;
+  std::vector<Ref<Matrix>> weights;
+  std::vector<Ref<Matrix>> bias;
   std::unordered_map<std::string, Matrix> forwardOut;
   std::unordered_map<std::string, Matrix> backwardOut;
 
+  std::vector<Matrix> m_w, v_w;
+  std::vector<Matrix> m_b, v_b;
+  u32 t = 0;
+
   NeuralNetwork() = default;
-  NeuralNetwork(std::vector<u32> layers, f32 step, u32 epochs);
+  NeuralNetwork(std::vector<u32> layers, u32 epochs);
 
   Matrix loadFile(u32 rows, u32 cols, std::string filepath);
 
@@ -68,7 +73,6 @@ public:
   Matrix d_relu(const Matrix &mat);
   Matrix softmax(const Matrix &mat);
 
-  void updateParameters();
   void forwardProp(Matrix input);
   void backwardProp(Matrix y);
   f32 accuracy(u32 numSamples, Matrix samples, Matrix labels);
@@ -81,13 +85,16 @@ public:
     return ModelContext(layers, weights, bias, forwardOut, backwardOut, loss, trainAcc, testAcc);
   }
 
-  void setWeights(std::vector<Matrix> w) { weights = w; };
-  void setBias(std::vector<Matrix> b) { bias = b; }
+  void setWeights(std::vector<Ref<Matrix>> w) { weights = w; };
+  void setBias(std::vector<Ref<Matrix>> b) { bias = b; }
   void setMetrics(f32 loss, f32 trainAccuracy, f32 testAccuracy) {
     this->loss = loss;
     this->trainAcc = trainAccuracy;
     this->testAcc = testAccuracy;
   };
+
+private:
+  Ref<Optimizer> _optimizer;
 };
 
 }  // namespace NN

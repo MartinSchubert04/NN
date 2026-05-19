@@ -7,6 +7,8 @@
 #define MAX(a, b) a > b ? a : b
 #define MIN(a, b) a < b ? a : b
 
+#define EPSILON 1e-8f
+
 #define MAT_OP(expr) \
   [&]() { \
     try { \
@@ -49,9 +51,11 @@ public:
   TransposeView T();
 
   Matrix operator+(const Matrix &mat);
+  Matrix operator+(const f32 &scalar);
   Matrix operator-(const Matrix &mat);
 
   Matrix operator*(f32 scalar);  // same as scale()
+  Matrix operator/(const Matrix &mat);  // a * b
   Matrix operator*(const Matrix &mat);  // a * b
   Matrix operator*(const TransposeView &mat);  // a * b.T()
   friend Matrix operator*(const TransposeView &view, const Matrix &mat);  // a.T() * b
@@ -63,5 +67,6 @@ public:
 // helper funs
 
 Matrix sumXaxis(const Matrix &mat);
+Matrix sqrt(const Matrix &mat);
 
 }  // namespace NN

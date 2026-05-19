@@ -14,26 +14,24 @@ void Serializer::save(const std::string &path, NeuralNetwork::ModelContext &ctx)
   f.write(reinterpret_cast<const char *>(&nBias), sizeof(nBias));
   f.write(reinterpret_cast<const char *>(&nWeights), sizeof(nWeights));
 
-  for (const auto &mat : ctx.bias) {
-    // write dimensions
-    u32 rows = mat.rows;
-    u32 cols = mat.cols;
+  for (auto &mat : ctx.bias) {
+    mat = createRef<Matrix>();
+
+    u32 rows = mat->rows;
+    u32 cols = mat->cols;
     f.write(reinterpret_cast<const char *>(&rows), sizeof(rows));
     f.write(reinterpret_cast<const char *>(&cols), sizeof(cols));
-
-    // data
-    f.write(reinterpret_cast<const char *>(mat.data.data()), rows * cols * sizeof(f32));
+    f.write(reinterpret_cast<const char *>(mat->data.data()), rows * cols * sizeof(f32));
   }
 
-  for (const auto &mat : ctx.weights) {
-    // write dimensions
-    u32 rows = mat.rows;
-    u32 cols = mat.cols;
+  for (auto &mat : ctx.weights) {
+    mat = createRef<Matrix>();
+
+    u32 rows = mat->rows;
+    u32 cols = mat->cols;
     f.write(reinterpret_cast<const char *>(&rows), sizeof(rows));
     f.write(reinterpret_cast<const char *>(&cols), sizeof(cols));
-
-    // data
-    f.write(reinterpret_cast<const char *>(mat.data.data()), rows * cols * sizeof(f32));
+    f.write(reinterpret_cast<const char *>(mat->data.data()), rows * cols * sizeof(f32));
   }
 
   f.write(reinterpret_cast<const char *>(&ctx.loss), sizeof(f32));
@@ -53,41 +51,45 @@ void Serializer::load(const std::string &path, NeuralNetwork::ModelContext &ctx)
   ctx.weights.resize(nWeights);
 
   for (auto &mat : ctx.bias) {
+    mat = createRef<Matrix>();
+
     u32 fileRows, fileCols;
     f.read(reinterpret_cast<char *>(&fileRows), sizeof(fileRows));
     f.read(reinterpret_cast<char *>(&fileCols), sizeof(fileCols));
 
     // validate dimensions
-    if (mat.rows != 0 && mat.cols != 0) {
-      if (mat.rows != fileRows || mat.cols != fileCols)
-        throw std::runtime_error("Dimension mismatch: expected: " + std::to_string(mat.rows) + "x" +
-                                 std::to_string(mat.cols) + " actual: " + std::to_string(fileRows) + "x" +
+    if (mat->rows != 0 && mat->cols != 0) {
+      if (mat->rows != fileRows || mat->cols != fileCols)
+        throw std::runtime_error("Dimension mismatch: expected: " + std::to_string(mat->rows) + "x" +
+                                 std::to_string(mat->cols) + " actual: " + std::to_string(fileRows) + "x" +
                                  std::to_string(fileCols));
     }
 
-    mat.rows = fileRows;
-    mat.cols = fileCols;
-    mat.data.resize(mat.rows * mat.cols);
-    f.read(reinterpret_cast<char *>(mat.data.data()), mat.rows * mat.cols * sizeof(f32));
+    mat->rows = fileRows;
+    mat->cols = fileCols;
+    mat->data.resize(mat->rows * mat->cols);
+    f.read(reinterpret_cast<char *>(mat->data.data()), mat->rows * mat->cols * sizeof(f32));
   }
 
   for (auto &mat : ctx.weights) {
+    mat = createRef<Matrix>();
+
     u32 fileRows, fileCols;
     f.read(reinterpret_cast<char *>(&fileRows), sizeof(fileRows));
     f.read(reinterpret_cast<char *>(&fileCols), sizeof(fileCols));
 
     // validate dimensions
-    if (mat.rows != 0 && mat.cols != 0) {
-      if (mat.rows != fileRows || mat.cols != fileCols)
-        throw std::runtime_error("Dimension mismatch: expected: " + std::to_string(mat.rows) + "x" +
-                                 std::to_string(mat.cols) + " actual: " + std::to_string(fileRows) + "x" +
+    if (mat->rows != 0 && mat->cols != 0) {
+      if (mat->rows != fileRows || mat->cols != fileCols)
+        throw std::runtime_error("Dimension mismatch: expected: " + std::to_string(mat->rows) + "x" +
+                                 std::to_string(mat->cols) + " actual: " + std::to_string(fileRows) + "x" +
                                  std::to_string(fileCols));
     }
 
-    mat.rows = fileRows;
-    mat.cols = fileCols;
-    mat.data.resize(mat.rows * mat.cols);
-    f.read(reinterpret_cast<char *>(mat.data.data()), mat.rows * mat.cols * sizeof(f32));
+    mat->rows = fileRows;
+    mat->cols = fileCols;
+    mat->data.resize(mat->rows * mat->cols);
+    f.read(reinterpret_cast<char *>(mat->data.data()), mat->rows * mat->cols * sizeof(f32));
   }
 
   f.read(reinterpret_cast<char *>(&ctx.loss), sizeof(f32));
